@@ -10,12 +10,24 @@ load_dotenv()
 
 class VideoIndexerClient:
     def __init__(self, account_id: str, subscription_key: str, indexer_location: str = "trial"):
+        """
+        Initialize the Video Indexer client.
+
+        :param account_id: The Video Indexer account ID.
+        :param subscription_key: The Video Indexer subscription key.
+        :param indexer_location: The location of the indexer (default: "trial").
+        """
         self.account_id = account_id
         self.subscription_key = subscription_key
         self.indexer_location = indexer_location
         self.access_token = self.get_access_token()
 
     def account_info(self):
+        """
+        Get information about the Video Indexer account.
+
+        :return: A tuple containing the account information and HTTP status code.
+        """
         url = f"https://api.videoindexer.ai/{self.indexer_location}/Accounts/{self.account_id}?includeUsage=true&includeAmsInfo=true&includeStatistics=true&accessToken={self.access_token}"
         result = requests.get(url)
 
@@ -25,6 +37,11 @@ class VideoIndexerClient:
             return {"error": "Account info failed", "response": result.json()}, result.status_code
 
     def get_access_token(self) -> str:
+        """
+        Get an access token for the Video Indexer API that can be used later for requesting other details.
+
+        :return: The access token as a string.
+        """
         url = f"https://api.videoindexer.ai/Auth/{self.indexer_location}/Accounts/{self.account_id}/AccessToken?allowEdit=true"
         headers = {
             "Ocp-Apim-Subscription-Key": self.subscription_key
@@ -33,6 +50,12 @@ class VideoIndexerClient:
         return result.text.replace('"', "")
 
     def upload_index_video(self, video_path: str):
+        """
+        Upload a video to create the index of it.
+
+        :param video_path: The path to the video file.
+        :return: A tuple containing the response and HTTP status code.
+        """
         try:
             video_name = video_path.split("/")[-1].rsplit('.', 1)[0]
             url = f"https://api.videoindexer.ai/{self.indexer_location}/Accounts/{self.account_id}/Videos?privacy=Private&name={video_name}&language=auto&accessToken={self.access_token}"
@@ -53,6 +76,12 @@ class VideoIndexerClient:
             return {"error": str(e)}, response.status_code
 
     def get_video_index(self, video_id: str):
+        """
+        Get the index information for a video.
+
+        :param video_id: The ID of the video.
+        :return: A tuple containing the video index information and HTTP status code.
+        """
         url = f"https://api.videoindexer.ai/{self.indexer_location}/Accounts/{self.account_id}/Videos/{video_id}/Index?language=English&reTranslate=false&includeStreamingUrls=true&includeSummarizedInsights=true&accessToken={self.access_token}"
         headers = {
             "Cache-Control": "no-cache",
@@ -63,8 +92,16 @@ class VideoIndexerClient:
             return result.json(), result.status_code
         else:
             return {"error": "Video indexing failed", "response": result.json()}, result.status_code
-        
+
     def get_list_of_videos(self, page_size: int = 25, skip: int = 0):
+        """
+        Get a list of videos from the Azure Video Indexer account.
+
+        :param page_size: The number of videos to retrieve per page (default: 25).
+        :param skip: The number of videos to skip (default: 0).
+
+        :return: A tuple containing the list of videos and HTTP status code.
+        """
         url = f"https://api.videoindexer.ai/{self.indexer_location}/Accounts/{self.account_id}/Videos?pageSize={page_size}&skip={skip}&accessToken={self.access_token}"
         headers = {
             "Cache-Control": "no-cache",
@@ -103,9 +140,10 @@ if __name__ == "__main__":
     # )
     # print(response_text)
     az_video_indexer = VideoIndexerClient(
-        account_id       = account_id, 
-        subscription_key = subscription_primary_key, 
-        indexer_location = video_indexer_location
+        account_id=account_id,
+        subscription_key=subscription_primary_key,
+        indexer_location=video_indexer_location
     )
-    response = az_video_indexer.upload_index_video(video_path="./Videos/argentina-vs-france-final-penalties-5usol1yr-16rdpyqc_WpdDMi6L.mp4")
+    response = az_video_indexer.upload_index_video(
+        video_path="./Videos/argentina-vs-france-final-penalties-5usol1yr-16rdpyqc_WpdDMi6L.mp4")
     print(response)
