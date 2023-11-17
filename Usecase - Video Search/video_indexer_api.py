@@ -49,7 +49,7 @@ class VideoIndexerClient:
         result = requests.get(url, headers=headers)
         return result.text.replace('"', "")
 
-    def upload_index_video(self, video_path: str):
+    def upload_index_video(self, video_path: str, video_name: str = None):
         """
         Upload a video to create the index of it.
 
@@ -57,16 +57,21 @@ class VideoIndexerClient:
         :return: A tuple containing the response and HTTP status code.
         """
         try:
-            video_name = video_path.split("/")[-1].rsplit('.', 1)[0]
             url = f"https://api.videoindexer.ai/{self.indexer_location}/Accounts/{self.account_id}/Videos?privacy=Private&name={video_name}&language=auto&accessToken={self.access_token}"
 
             headers = {
+                "Cache-Control": "no-cache",
                 "Ocp-Apim-Subscription-Key": self.subscription_key,
             }
 
-            with open(video_path, 'rb') as file:
-                files = {'file': ('file', file, 'application/octet-stream')}
-                response = requests.post(url, headers=headers, files=files)
+            if video_path.startswith("http"):
+                file_name = "".join(video_name.split(".")[:-1])
+                blob_uri_url = f"{url}&videoUrl={video_path}&fileName={file_name}"
+                response = requests.post(blob_uri_url, headers=headers)
+            else:
+                with open(video_path, 'rb') as file:
+                    files = {'file': ('file', file, 'application/octet-stream')}
+                    response = requests.post(url, headers=headers, files=files)
 
             if response.status_code == 200:
                 return response.json(), response.status_code

@@ -37,8 +37,14 @@ class BlobStorageClient:
         
     def upload_blob(self, container_client: ContainerClient, file_path: str, blob_name: str) -> BlobClient:
         try:
-            blob_client = container_client.upload_blob(name=blob_name, data=file_path, overwrite=True)
-            return blob_client
+            # container_client = self._blob_service_client.get_container_client(self._container_name)
+            blob_client = self._blob_service_client.get_blob_client(container = self._container_name, blob = blob_name)
+
+            with open(file_path, "rb") as data:
+                blob_client.upload_blob(data, overwrite=True)
+
+            # blob_client = container_client.upload_blob(name=blob_name, data=file_path, overwrite=True)
+            return 200
         except Exception as ex:
             print('Exception:')
             print(ex)
@@ -74,7 +80,7 @@ class BlobStorageClient:
             container_name = self._container_name,
             blob_name = blob_name,
             account_key = self._access_key,
-            permission = BlobSasPermissions(read=True),
+            permission = BlobSasPermissions(read=True, write=True, delete=True),
             expiry = datetime.utcnow() + timedelta(hours=1)
         )
         # construct the full URI with SAS token
