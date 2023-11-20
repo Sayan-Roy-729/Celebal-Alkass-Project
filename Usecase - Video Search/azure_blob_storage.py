@@ -92,7 +92,7 @@ class BlobStorageClient:
         except Exception as ex:
             print('Exception:')
             print(ex)
-            return None
+            return None 
         
     def delete_container(self, container_client: ContainerClient) -> None:
         try:

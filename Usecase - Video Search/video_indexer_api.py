@@ -66,8 +66,11 @@ class VideoIndexerClient:
 
             if video_path.startswith("http"):
                 file_name = "".join(video_name.split(".")[:-1])
-                blob_uri_url = f"{url}&videoUrl={video_path}&fileName={file_name}"
-                response = requests.post(blob_uri_url, headers=headers)
+
+                blob_url = f"https://api.videoindexer.ai/{self.indexer_location}/Accounts/{self.account_id}/Videos?name={video_name}&privacy=Private&language=auto&videoUrl={video_path}&fileName={file_name}&accessToken={self.access_token}"
+                
+                # blob_uri_url = f"{url}&videoUrl={video_path}&fileName={file_name}"
+                response = requests.post(blob_url, headers=headers)
             else:
                 with open(video_path, 'rb') as file:
                     files = {'file': ('file', file, 'application/octet-stream')}
